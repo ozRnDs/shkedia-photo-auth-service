@@ -1,4 +1,4 @@
-# shkedia-photo-user-db-service
+# shkedia-photo-auth-service
 
 # Overview
 The Users DB service for the Shkedia Private Image Cloud project.
