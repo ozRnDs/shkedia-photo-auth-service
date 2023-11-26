@@ -1,6 +1,8 @@
 FROM python:3.11.6
 
 
+RUN apt-get update && apt-get install postgresql-client -y
+
 RUN mkdir -p /usr/src
 
 WORKDIR /usr/src
