@@ -4,9 +4,6 @@ logging.basicConfig(format='%(asctime)s.%(msecs)05d | %(levelname)s | %(filename
 
 class ApplicationConfiguration:
 
-    SQL_HOST: str = "127.0.0.1"
-    SQL_PORT: int = 1234
-    AUTH_DB_NAME: str = "timer_db"
     AUTH_DB_CREDENTIALS_LOCATION: str = "CHANGE ME"
 
     RECONNECT_WAIT_TIME: int = 1
