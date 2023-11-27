@@ -1,7 +1,7 @@
 import logging
 logger = logging.getLogger(__name__)
 from fastapi import APIRouter, HTTPException
-from models.user import UserDB, User
+from models.user import UserDB, User, UserRequest
 from db.service import DBService
 
 class UserServiceHandler:
@@ -19,7 +19,7 @@ class UserServiceHandler:
     def __initialize_routes__(self):
         router = APIRouter(tags=["Users"])
         router.add_api_route(path="", 
-                             endpoint=self.post_user,
+                             endpoint=self.put_user,
                              methods=["put"],
                              response_model=User)
         router.add_api_route(path="", 
@@ -36,10 +36,9 @@ class UserServiceHandler:
         return router
 
 
-    def post_user(self, user_name: str, password: str) -> User:
-        
+    def put_user(self, user: UserRequest) -> User:       
         try:
-            new_user: UserDB = self.db_service.insert(UserDB,user_name=user_name, password=password)
+            new_user: UserDB = self.db_service.insert(UserDB,**user.model_dump())
             return new_user.toUser()
         except Exception as err:
             logger.error(err)
@@ -60,10 +59,10 @@ class UserServiceHandler:
     def delete_user(self, user_id: str):
         try:
             user = self.db_service.select(UserDB, user_id=user_id)
-            if not user is None:
-                self.db_service.delete(user)
-                return True
-            raise HTTPException(status_code=404, detail="Can't delete user")
+            if user is None:
+                raise HTTPException(status_code=404, detail="Can't delete user")
+            self.db_service.delete(user)
+            return True    
         except Exception as err:
             logger.error(err)
             if type(err)==HTTPException:
