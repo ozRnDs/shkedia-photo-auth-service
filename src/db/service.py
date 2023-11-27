@@ -50,8 +50,10 @@ class DBService:
                                                         connect_timeout=connection_timeout)
         except Exception as err:
             logger.error(err)
+            raise ConnectionError("Couldn't connect to the server")
         if self.db_connection_object.closed:
             raise ConnectionError("Couldn't connect to the server")
+        logger.info("Connected Successfully to the DB")
     
     def __get_credentials_from_file__(self):
         with open(self.credential_file_location, 'r') as file:
@@ -91,15 +93,13 @@ class DBService:
     
     @staticmethod
     def __parse_response_to_model__(model_type: Type[TSqlModel], values_list: list):
-        fields = model_type.__annotations__
-        if len(fields) != len(values_list):
-            raise AttributeError("The values count doesn't match the model's field count")
+        fields = model_type.model_fields
         kargs = {}
         for field_index, field_name in enumerate(fields):
             if values_list[field_index] is None:
                 continue
             # kargs[field_name] = eval(values_list[field_index])
-            kargs[field_name] = (fields[field_name])(values_list[field_index])
+            kargs[field_name] = (fields[field_name].annotation)(values_list[field_index])
         return model_type(**kargs)
 
 
@@ -140,5 +140,6 @@ class DBService:
         if self.db_connection_object.closed:
             return
         self.db_connection_object.close()
+        logger.info("Closed DB Connection")
 
         
