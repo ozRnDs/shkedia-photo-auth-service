@@ -5,6 +5,10 @@ from datetime import datetime
 
 from db.service import SqlModel
 
+class DeviceRequest(BaseModel):
+    device_name: str
+    owner_name: str
+
 class Device(BaseModel, SqlModel):
     device_id: str = Field(default_factory=lambda:str(uuid4()))
     device_name: str
