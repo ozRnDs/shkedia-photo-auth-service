@@ -7,18 +7,18 @@ This will be CRUD RESTful API based on FastAPI.
 
 ## The service actions
 ### Handle users
-GET /users  
+PUT /user  
+POST /user/{user_id}  
+DELETE /user/{user_id}    
+GET /user/search?search_field=search_value    
 GET /user/{user_id}  
-POST /user  
-UPDATE /user/{user_id}  
-DELETE /user/{user_id}  
 
 ### Handle user's devices
-GET /user/{user_id}/devices  
-GET /user/{user_id}/device/{device_id}  
-POST /user/{user_id}/device  
-UPDATE /user/{user_id}/device/{device_id}  
-DELETE /user/{user_id}/device/{device_id}  
+PUT /device  
+POST /device/{device_id}  
+DELETE /device/{device_id}  
+GET /device/search?search_field=search_value  
+GET /device/{device_id}  
 
 ### Handle user's authentication
 POST /user/{user_id}/login  
