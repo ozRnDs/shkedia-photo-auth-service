@@ -37,3 +37,8 @@ class UserDB(User, SqlModel):
     def parse_model_from_sql_result(sql_result):
         return User(user_id=sql_result[0],user_name=sql_result[1], password=sql_result[2], created_on=sql_result[3].isoformat())
     
+    def toUser(self):
+        object_dict: dict = self.model_dump()
+        for attr in UserDB.__annotations__:
+            object_dict.pop(attr)
+        return User(**object_dict)
