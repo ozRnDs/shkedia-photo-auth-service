@@ -7,8 +7,9 @@ import uvicorn
 from config import app_config
 from authentication.service import AuthService
 from db.service import DBService
-from routes.users import UserServiceHandler
 
+from routes.users import UserServiceHandler
+from routes.devices import DeviceServiceHandler
 
     
 app = FastAPI(description="Rest API Interface for the timer service")
@@ -21,12 +22,14 @@ try:
                             user_service_uri=app_config.AUTH_SERVICE_URL)
     db_service = DBService(credential_file_location=app_config.AUTH_DB_CREDENTIALS_LOCATION)
     user_service = UserServiceHandler(db_service=db_service, app_logging_service=None)
+    device_service = DeviceServiceHandler(db_service=db_service, app_logging_service=None)
 except Exception as err:
     app_config.logger.error(f"Failed to start service. {err}")
 # Connect all routes
 # Example: app.include_router(new_component.router, prefix="/path")
 
 app.include_router(user_service.router, prefix="/user")
+app.include_router(device_service.router, prefix="/device")
 
 
 
