@@ -3,23 +3,35 @@ logger = logging.getLogger(__name__)
 import json
 import psycopg
 from abc import ABC
+from typing import Type, TypeVar
 
 from db.sql_from_model import get_table_name_from_object
 
 class SqlModel(ABC):
 
     @staticmethod
-    def __init_model_sql__():
-        pass
+    def __sql_create_table__():
+        raise NotImplementedError()
 
-    def __create_sql_model__(self):
-        pass
+    def __sql_insert__(self):
+        raise NotImplementedError()
+    
+    @staticmethod
+    def __sql_select_item__(field_name, field_value):
+        raise NotImplementedError()
+
+    def __sql_update_item__(self):
+        raise NotImplementedError()
+
+    def __sql_delete_item__(self):
+        raise NotImplementedError()
 
     def __does_table_exists__(self):
         table_name = get_table_name_from_object(self)
         sql_template = ...
         return ...
 
+TSqlModel = TypeVar("TSqlModel", bound=SqlModel)
 
 class DBService:
 
@@ -45,21 +57,69 @@ class DBService:
         with open(self.credential_file_location, 'r') as file:
             credential_object = json.load(file)
         return credential_object
+    
+    def is_ready(self):
+        if not self.db_connection_object.closed:
+            return True
+        return False
 
-    def insert_object(self, model_object: SqlModel):
-        sql_template, values = model_object.__create_sql_model__()
-        self.execute_sql(sql_template=sql_template, values=values)
+    def create_table(self, model_type: Type[TSqlModel]) -> None:
+        sql_template = model_type.__sql_create_table__()
+        self.__execute_sql__(sql_template=sql_template, values=None, commit=True)
 
-    def execute_sql(self, sql_template, values: tuple):
-        response=None
+    def insert(self, model_type: Type[TSqlModel], **kargs) -> TSqlModel:
+        model_object = model_type(**kargs)
+        sql_template, values = model_object.__sql_insert__()
+        self.__execute_sql__(sql_template=sql_template, values=values, commit=True)
+        return model_object
+
+    def select(self, model_type: Type[TSqlModel], **kargs) -> TSqlModel:
+        search_key = (list)(kargs.keys())[0]
+        search_value = (list)(kargs.values())[0]
+        sql_template, values = model_type.__sql_select_item__(search_key, search_value)
+        curser = self.__execute_sql__(sql_template=sql_template, values=values, get_cursor=True)
+        responses = curser.fetchall()
+        curser.close()
+        models_list=[]
+        for response in responses:
+            models_list.append(self.__parse_response_to_model__(model_type, response))
+        if len(models_list) == 1:
+            return models_list[0]
+        if len(models_list) > 0:
+            return models_list
+        return None
+    
+    @staticmethod
+    def __parse_response_to_model__(model_type: Type[TSqlModel], values_list: list):
+        fields = model_type.__annotations__
+        if len(fields) != len(values_list):
+            raise AttributeError("The values count doesn't match the model's field count")
+        kargs = {}
+        for field_index, field_name in enumerate(fields):
+            if values_list[field_index] is None:
+                continue
+            # kargs[field_name] = eval(values_list[field_index])
+            kargs[field_name] = (fields[field_name])(values_list[field_index])
+        return model_type(**kargs)
+
+
+    def delete(self, model_object: TSqlModel):
+        sql_template, values = model_object.__sql_delete_item__()
+        self.__execute_sql__(sql_template=sql_template, values=values, commit=True)
+
+    def update(self, model_object: TSqlModel):
+        sql_template, values = model_object.__sql_update_item__()
+        self.__execute_sql__(sql_template=sql_template, values=values, commit=True)
+
+    def __execute_sql__(self, sql_template, values: tuple, get_cursor=False, commit=False):
         temp_curser = self.db_connection_object.cursor()
         temp_curser.execute(sql_template, values)
-        if self.__is_changing_query__(sql_template):
+        if commit:
             self.db_connection_object.commit()
-        if "SELECT" in temp_curser.statusmessage:
-            response = temp_curser.fetchall()
+        if get_cursor:
+            return temp_curser
         temp_curser.close()
-        return response
+        
 
     def __is_changing_query__(self, query):
         if "INSERT INTO" in query:

@@ -1,16 +1,18 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from uuid import uuid4
 from datetime import datetime
 from db.service import SqlModel
 
-class User(BaseModel, SqlModel):
-    user_id: str = str(uuid4())
+class User(BaseModel):
+    user_id: str = Field(default_factory=lambda: str(uuid4()))
     user_name: str
-    password: str
-    created_on: str = datetime.now().isoformat()
+    created_on: str = Field(default_factory=lambda: datetime.now().isoformat())
 
+class UserDB(User, SqlModel):
+    password: str
+    
     @staticmethod
-    def __init_model_sql__():
+    def __sql_create_table__():
         sql_template = """CREATE TABLE users (
             user_id VARCHAR ( 50 ) PRIMARY KEY,
             user_name VARCHAR ( 50 ) UNIQUE NOT NULL,
@@ -19,20 +21,17 @@ class User(BaseModel, SqlModel):
         )"""
         return sql_template
     
-    def __create_model_sql__(self):
+    def __sql_insert__(self):
         sql_template = """INSERT INTO users (
             user_id, user_name, password, created_on
         ) VALUES (%s, %s, %s, %s)"""
         values = (self.user_id, self.user_name, self.password, self.created_on)
         return sql_template, values
-
-    def __str__(self) -> str:
-        return f"User {self.user_name} is with id: {self.user_id}"
-
+    
     @staticmethod
-    def __get_model_by_field__(field_name, value):
+    def __sql_select_item__(field_name, field_value):
         sql_template = f"SELECT * FROM users WHERE {field_name}=%s"
-        return sql_template, (value,)
+        return sql_template, (field_value,)
 
     @staticmethod
     def parse_model_from_sql_result(sql_result):

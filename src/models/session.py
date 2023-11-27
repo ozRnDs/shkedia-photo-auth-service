@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Union
 from uuid import uuid4
 from datetime import datetime, timedelta
@@ -6,15 +6,15 @@ from datetime import datetime, timedelta
 from db.service import SqlModel
 
 class Session(BaseModel, SqlModel):
-    session_id: str = str(uuid4())
+    session_id: str = Field(default_factory=lambda:str(uuid4()))
     user_id: str
     device_id: str
     session_secret: str
-    expiration_date: str = (datetime.now() + timedelta(days=7)).isoformat()
+    expiration_date: str = Field(default_factory=lambda:(datetime.now() + timedelta(days=7)).isoformat())
     last_activity: Union[str, None] = None
 
     @staticmethod
-    def __init_model_sql__():
+    def __sql_create_table__():
         sql_template = """CREATE TABLE sessions (
             session_id VARCHAR ( 50 ) PRIMARY KEY,
             user_id VARCHAR ( 50 ) NOT NULL REFERENCES users(user_id),
@@ -25,16 +25,16 @@ class Session(BaseModel, SqlModel):
         )"""
         return sql_template
     
-    def __create_model_sql__(self):
+    def __sql_insert__(self):
         sql_template = """INSERT INTO sessions (
             session_id, user_id, device_id, session_secret, expiration_date, last_activity
         ) VALUES (%s, %s, %s, %s, %s, %s)"""
         values = (self.session_id, self.user_id, self.device_id, self.session_secret, self.expiration_date, self.last_activity)
         return sql_template, values
 
-    # @staticmethod
-    # def create_user(user_name: str, password: str):
-    #     new_user = User(user_name=user_name, password=password)
-    #     return new_user
+    @staticmethod
+    def __sql_select_item__(field_name, field_value):
+        sql_template = f"SELECT * FROM sessions WHERE {field_name}=%s"
+        return sql_template, (field_value,)
 
     
