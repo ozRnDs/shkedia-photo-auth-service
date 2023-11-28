@@ -17,11 +17,11 @@ class UserDB(User, SqlModel):
     
     @staticmethod
     def __sql_create_table__():
-        sql_template = """CREATE TABLE users (
+        sql_template = """CREATE TABLE IF NOT EXISTS users (
             user_id VARCHAR ( 50 ) PRIMARY KEY,
             user_name VARCHAR ( 50 ) UNIQUE NOT NULL,
-            password VARCHAR ( 50 ) NOT NULL,
-            created_on TIMESTAMP NOT NULL
+            created_on TIMESTAMP NOT NULL,
+            password VARCHAR ( 250 ) NOT NULL
         )"""
         return sql_template
     

@@ -1,26 +1,30 @@
 import logging
 logger = logging.getLogger(__name__)
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from typing import Union, List
 
 from models.user import UserDB, User
 from models.device import Device, DeviceRequest
 from db.service import DBService
+from authentication.service import AuthService
 
 class DeviceServiceHandler:
     def __init__(self, 
                  db_service: DBService,
-                 app_logging_service
+                 app_logging_service,
+                 auth_service: AuthService
                  ):
         self.db_service = db_service
         self.logging_service = app_logging_service
+        self.auth_service = auth_service
         if not self.db_service.is_ready():
             raise Exception("Can't initializes without repo_service")
         self.router = self.__initialize_routes__()
 
 
     def __initialize_routes__(self):
-        router = APIRouter(tags=["Devices"])
+        router = APIRouter(tags=["Devices"],
+                           dependencies=[Depends(self.auth_service.__get_user_from_token__)])
         router.add_api_route(path="", 
                              endpoint=self.put_device,
                              methods=["put"],
