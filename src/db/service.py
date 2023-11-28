@@ -113,11 +113,14 @@ class DBService:
 
     def __execute_sql__(self, sql_template, values: tuple, get_cursor=False, commit=False):
         temp_curser = self.db_connection_object.cursor()
-        temp_curser.execute(sql_template, values)
-        if commit:
-            self.db_connection_object.commit()
-        if get_cursor:
-            return temp_curser
+        try:
+            temp_curser.execute(sql_template, values)
+            if commit:
+                self.db_connection_object.commit()
+            if get_cursor:
+                return temp_curser
+        except Exception as err:
+            logger.error(err)
         temp_curser.close()
         
 
