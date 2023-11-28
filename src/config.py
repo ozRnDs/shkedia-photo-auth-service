@@ -10,8 +10,9 @@ class ApplicationConfiguration:
     RETRY_NUMBER: int = 10
 
     # Authentication Configuration values
-    IDENTITY_TOKEN_LOCATION: str = "CHANGE ME"
+    JWT_KEY_LOCATION: str = "CHANGE ME"
     AUTH_SERVICE_URL: str = "CHANGE ME"
+    TOKEN_TIME_PERIOD: int = 15
 
     def __init__(self) -> None:
         self.logger = logging.getLogger()

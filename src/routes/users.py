@@ -1,15 +1,22 @@
 import logging
 logger = logging.getLogger(__name__)
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
+
+from typing import Annotated
 from models.user import UserDB, User, UserRequest
 from db.service import DBService
+from authentication.service import AuthService, OAuth2PasswordBearer
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 class UserServiceHandler:
     def __init__(self, 
                  db_service: DBService,
+                 auth_service: AuthService,
                  app_logging_service
                  ):
         self.db_service = db_service
+        self.auth_service = auth_service
         self.logging_service = app_logging_service
         if not self.db_service.is_ready():
             raise Exception("Can't initializes without repo_service")
@@ -21,23 +28,29 @@ class UserServiceHandler:
         router.add_api_route(path="", 
                              endpoint=self.put_user,
                              methods=["put"],
-                             response_model=User)
+                             response_model=User,
+                             )
         router.add_api_route(path="", 
                              endpoint=self.get_user,
                              methods=["get"],
-                             response_model=User)
+                             response_model=User,
+                             dependencies=[Depends(self.auth_service.__get_user_from_token__)],
+                            )
         router.add_api_route(path="/{user_id}", 
                              endpoint=self.delete_user,
-                             methods=["delete"])
+                             methods=["delete"],
+                             dependencies=[Depends(self.auth_service.__get_user_from_token__)],
+                             )
         router.add_api_route(path="/{user_id}", 
                              endpoint=self.update_user,
                              methods=["post"],
-                             response_model=User)
+                             response_model=User,
+                             dependencies=[Depends(self.auth_service.__get_user_from_token__)])
         return router
 
-
-    def put_user(self, user: UserRequest) -> User:       
+    def put_user(self, user: UserRequest) -> User:       # current_user: Annotated[UserDB, Depends(AuthService().__get_user_from_token__)]
         try:
+            user.password = self.auth_service.get_password_hash(user.password)
             new_user: UserDB = self.db_service.insert(UserDB,**user.model_dump())
             return new_user.toUser()
         except Exception as err:
@@ -56,7 +69,7 @@ class UserServiceHandler:
         return get_user.toUser()
 
 
-    def delete_user(self, user_id: str):
+    def delete_user(self, user_id: str, current_user: Annotated[UserDB, Depends(get_user)]):
         try:
             user = self.db_service.select(UserDB, user_id=user_id)
             if user is None:
@@ -69,7 +82,7 @@ class UserServiceHandler:
                 raise err
             raise HTTPException(status_code=500, detail="Can't delete user")
     
-    def update_user(self, user_id: str) -> User:
+    def update_user(self, user_id: str, current_user: Annotated[UserDB, Depends(get_user)]) -> User:
         try:
             self.db_service.update(UserDB, user_id=user_id)
         except Exception as err:
