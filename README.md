@@ -52,6 +52,9 @@ UPDATE /rotate_key
     ```
 ### psql CLI
 In the psql itself you can write SQLs and use the PostgreSQL syntax for more options.  
+```bash
+apt install postgresql
+```
 For help about the SQL commands type: *\h*  
 For help about the PostgreSQL commands type: *\?*
 
