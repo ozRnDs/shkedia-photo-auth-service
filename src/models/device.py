@@ -18,7 +18,7 @@ class Device(BaseModel, SqlModel):
 
     @staticmethod
     def __sql_create_table__():
-        sql_template = """CREATE TABLE devices (
+        sql_template = """CREATE TABLE IF NOT EXISTS devices (
             device_id VARCHAR ( 50 ) PRIMARY KEY,
             device_name VARCHAR ( 50 ) UNIQUE NOT NULL,
             owner_id VARCHAR ( 50 ) NOT NULL REFERENCES users(user_id),

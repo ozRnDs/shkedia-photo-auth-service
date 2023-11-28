@@ -15,7 +15,7 @@ class Session(BaseModel, SqlModel):
 
     @staticmethod
     def __sql_create_table__():
-        sql_template = """CREATE TABLE sessions (
+        sql_template = """CREATE TABLE IF NOT EXISTS sessions (
             session_id VARCHAR ( 50 ) PRIMARY KEY,
             user_id VARCHAR ( 50 ) NOT NULL REFERENCES users(user_id),
             device_id VARCHAR ( 50 ) NOT NULL REFERENCES devices(device_id),
