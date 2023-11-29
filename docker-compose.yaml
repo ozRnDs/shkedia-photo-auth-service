@@ -1,0 +1,15 @@
+services:
+  auth-api:
+    image: public.ecr.aws/q2n5r5e8/ozrnds/shkedia-photo-auth-service:${AUTH_SERVICE_VERSION}
+    container_name: auth_api
+    env_file: .local/auth_service.env
+    environment:
+      - AUTH_DB_CREDENTIALS_LOCATION
+      - JWT_KEY_LOCATION
+      - TOKEN_TIME_PERIOD
+    expose:
+      - "5000"
+    ports:
+      - "4430:5000"
+    volumes:
+      - ${HOST_MOUNT}:/temp
