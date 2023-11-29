@@ -21,9 +21,7 @@ GET /device/search?search_field=search_value
 GET /device/{device_id}  
 
 ### Handle user's authentication
-POST /user/{user_id}/login  
-POST /user/{user_id}/logout  
-GET /user/{user_id}/token  
+POST /login 
 
 [Information about user authentication process using FastAPI](https://fastapi.tiangolo.com/tutorial/security/simple-oauth2/)
 
@@ -37,7 +35,21 @@ UPDATE /rotate_key
 ## Environment
 
 ## Build
-
+1. Set the parameters for the build
+    ```bash
+    export IMAGE_VERSION=cz version -p
+    export IMAGE_NAME=shkedia-photo-auth-service:${IMAGE_VERSION}
+    export IMAGE_FULL_NAME=public.ecr.aws/q2n5r5e8/ozrnds/${IMAGE_NAME}
+    ```
+2. Build the image
+    ```bash
+    docker build . -t ${IMAGE_FULL_NAME}
+    ```
+3. Push the image
+    ```bash
+    docker push ${IMAGE_FULL_NAME}
+    ```
+    Before pushing the image, make sure you are logged in
 ## Test
 
 ## Basic CLI command for PostgreSql
