@@ -72,14 +72,14 @@ UPDATE /rotate_key
     TOKEN_TIME_PERIOD=$TOKEN_TIME_PERIOD
     EOT
     ```
-2. Run the service using compose command:
+1. Run the service using compose command:
     ```bash
     docker compose up -d
     ```
-3. The env can be override by the following command:
+1. The env can be override by the following command:
     ```bash
-    EXPORT AUTH_ENV=./local/auth_service.env
-    docker compose -env-file ${AUTH_ENV} up -d
+    EXPORT AUTH_ENV=.local/auth_service.env
+    docker compose --env-file ${AUTH_ENV} up -d
     ```
 
 # Development
