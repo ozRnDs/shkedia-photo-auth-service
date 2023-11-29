@@ -4,8 +4,6 @@ logging.basicConfig(format='%(asctime)s.%(msecs)05d | %(levelname)s | %(filename
 
 class ApplicationConfiguration:
 
-    AUTH_DB_CREDENTIALS_LOCATION: str = "CHANGE ME"
-
     RECONNECT_WAIT_TIME: int = 1
     RETRY_NUMBER: int = 10
 
@@ -13,6 +11,9 @@ class ApplicationConfiguration:
     JWT_KEY_LOCATION: str = "CHANGE ME"
     AUTH_SERVICE_URL: str = "CHANGE ME"
     TOKEN_TIME_PERIOD: int = 15
+
+    # DB Configuration values
+    AUTH_DB_CREDENTIALS_LOCATION: str = "CHANGE ME"
 
     def __init__(self) -> None:
         self.logger = logging.getLogger()

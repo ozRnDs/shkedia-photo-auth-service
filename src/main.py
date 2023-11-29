@@ -16,9 +16,7 @@ from models.user import UserDB
 from models.device import Device
 from models.session import Session
     
-app = FastAPI(description="Rest API Interface for the timer service")
-
- #TODO: Bind auth service as middleware to all requests
+app = FastAPI(description="Rest API Interface for the Auth service")
 
 # Initialize all app services
 try:
@@ -44,9 +42,3 @@ except Exception as err:
 app.include_router(auth_service.router, prefix="/login")
 app.include_router(user_service.router, prefix="/user")
 app.include_router(device_service.router, prefix="/device")
-
-
-if __name__ == "__main__":
-    pass
-
-    # uvicorn.run("main:app", host="0.0.0.0", port=5000, log_level="info", access_log=False)
