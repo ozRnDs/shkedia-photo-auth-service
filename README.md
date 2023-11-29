@@ -29,7 +29,58 @@ POST /login
 UPDATE /rotate_key
 
 # Deploy
+## Local Deployment
+1. Set the location of the credentials files on the host:
+    ```bash
+    export HOST_MOUNT=/secrets/auth_credentials
+    export AUTH_SERVICE_VERSION=0.0.1
+    ```
+1. Create credentials token files as follows:
+    ```bash
+    # Create the folder to be mounted to the container
+    if [ ! -d $HOST_MOUNT ]; then
+        sudo mkdir $HOST_MOUNT
+        sudo chown $USER $HOST_MOUNT
+    fi
+    # Create the postgres credentials file:
+    export SQL_HOST=<write your sql host>
+    export SQL_PORT=<write your sql port>
+    export DB_NAME=<write your db name>
+    export SQL_USER=<write your sql username>
+    export SQL_PASSWORD=<write your SQL_PASSWORD>
 
+    cat << EOT > $HOST_MOUNT/postgres_credentials.json
+    '{"host": '${SQL_HOST}', "port": '${SQL_PORT}', "db_name": '${DB_NAME}', "user": '${SQL_USER}', "password": '${SQL_PASSWORD}'}'
+    EOT
+    # Create the jwt token file:
+    openssl rand -hex 32 > $HOST_MOUNT/jwt_token
+    ```
+1. Create *auth.env* file in .local folder with the service variables:
+    ```bash
+    export CREDENTIALS_FOLDER_NAME=/temp
+    export AUTH_DB_CREDENTIALS_LOCATION=$CREDENTIALS_FOLDER_NAME/postgres_credentials.json
+    export JWT_KEY_LOCATION=$CREDENTIALS_FOLDER_NAME/jwt_token
+    export TOKEN_TIME_PERIOD=15
+
+    if [ ! -d .local ]; then
+        sudo mkdir .local
+    fi
+    cat << EOT > .local/auth_service.env
+    CREDENTIALS_FOLDER_NAME=$CREDENTIALS_FOLDER_NAME
+    AUTH_DB_CREDENTIALS_LOCATION=$AUTH_DB_CREDENTIALS_LOCATION
+    JWT_KEY_LOCATION=$JWT_KEY_LOCATION
+    TOKEN_TIME_PERIOD=$TOKEN_TIME_PERIOD
+    EOT
+    ```
+2. Run the service using compose command:
+    ```bash
+    docker compose up -d
+    ```
+3. The env can be override by the following command:
+    ```bash
+    EXPORT AUTH_ENV=./local/auth_service.env
+    docker compose -env-file ${AUTH_ENV} up -d
+    ```
 
 # Development
 ## Environment
@@ -37,7 +88,7 @@ UPDATE /rotate_key
 ## Build
 1. Set the parameters for the build
     ```bash
-    export IMAGE_VERSION=cz version -p
+    export IMAGE_VERSION=$(cz version -p)
     export IMAGE_NAME=shkedia-photo-auth-service:${IMAGE_VERSION}
     export IMAGE_FULL_NAME=public.ecr.aws/q2n5r5e8/ozrnds/${IMAGE_NAME}
     ```
