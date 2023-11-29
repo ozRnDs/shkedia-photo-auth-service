@@ -2,6 +2,7 @@ import logging
 logger = logging.getLogger(__name__)
 import json
 import psycopg
+from psycopg.errors import OperationalError
 from abc import ABC
 from typing import Type, TypeVar
 
@@ -37,17 +38,13 @@ class DBService:
 
     def __init__(self,
                  credential_file_location: str,
-                 connection_timeout: int=10
+                 connection_timeout: int=1
                  ) -> None:
         self.credential_file_location = credential_file_location
-        credential_object = self.__get_credentials_from_file__()
+        self.connection_timeout = connection_timeout
         try:
-            self.db_connection_object = psycopg.connect(host=credential_object["host"],
-                                                        port=credential_object["port"],
-                                                        dbname=credential_object["db_name"],
-                                                        user=credential_object["user"],
-                                                        password=credential_object["password"],
-                                                        connect_timeout=connection_timeout)
+            self.db_connection_object: psycopg.Connection = None
+            self.__connect__()
         except Exception as err:
             logger.error(err)
             raise ConnectionError("Couldn't connect to the server")
@@ -55,6 +52,17 @@ class DBService:
             raise ConnectionError("Couldn't connect to the server")
         logger.info("Connected Successfully to the DB")
     
+    def __connect__(self):
+        credential_object = self.__get_credentials_from_file__()
+        self.db_connection_object = psycopg.connect(host=credential_object["host"],
+                        port=credential_object["port"],
+                        dbname=credential_object["db_name"],
+                        user=credential_object["user"],
+                        password=credential_object["password"],
+                        connect_timeout=self.connection_timeout,
+                        autocommit=True)
+                        
+
     def __get_credentials_from_file__(self):
         with open(self.credential_file_location, 'r') as file:
             credential_object = json.load(file)
@@ -111,17 +119,35 @@ class DBService:
         sql_template, values = model_object.__sql_update_item__()
         self.__execute_sql__(sql_template=sql_template, values=values, commit=True)
 
-    def __execute_sql__(self, sql_template, values: tuple, get_cursor=False, commit=False):
+    def __execute_sql__(self, sql_template, values: tuple, get_cursor=False, commit=False, retry=0):
+        if self.db_connection_object.closed:
+            logger.info("Reconnect to DB Service")
+            self.__connect__()
         temp_curser = self.db_connection_object.cursor()
         try:
             temp_curser.execute(sql_template, values)
-            if commit:
-                self.db_connection_object.commit()
+            # if commit:
+            #     self.db_connection_object.commit()
             if get_cursor:
                 return temp_curser
+            temp_curser.close()
+            return
+        except OperationalError as err:
+            if "EOF detected" in str(err):
+                if not temp_curser.closed:
+                    temp_curser.close()
+                if retry>10:
+                    raise err
+                return self.__execute_sql__(sql_template=sql_template,
+                                            values=values,
+                                            get_cursor=get_cursor,
+                                            commit=commit,
+                                            retry=retry+1)
         except Exception as err:
+            if not temp_curser.closed:
+                temp_curser.close()
             logger.error(err)
-        temp_curser.close()
+            raise err
         
 
     def __is_changing_query__(self, query):
