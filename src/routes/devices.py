@@ -48,7 +48,7 @@ class DeviceServiceHandler:
 
     def put_device(self, device: DeviceRequest):
         try:
-            user = self.db_service.select(UserDB, user_name=device.owner_name)
+            user = self.db_service.select(UserDB, user_name=[device.owner_name])
             if user is None:
                 raise HTTPException(status_code=404, detail="Can't find user")
             new_device = self.db_service.insert(Device, 
@@ -67,7 +67,7 @@ class DeviceServiceHandler:
 
     def search_device(self, search_field: str = "device_name", search_value: str = None) -> Device:
         try:
-            search_dictionary = {search_field: search_value}
+            search_dictionary = {search_field: [search_value]}
             get_device: Device = self.db_service.select(Device,**search_dictionary)
             if get_device is None:
                 raise HTTPException(status_code=404, detail="Device was not found")
@@ -80,7 +80,7 @@ class DeviceServiceHandler:
 
     def delete_device(self, device_id: str):
         try:
-            device = self.db_service.select(Device, device_id=device_id)
+            device = self.db_service.select(Device, device_id=[device_id])
             if device is None:
                 raise HTTPException(status_code=404, detail="Can't delete device")
             self.db_service.delete(device)

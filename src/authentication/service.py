@@ -49,7 +49,7 @@ class AuthService:
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-        user = self.db_service.select(UserDB, user_name=form_data.username)
+        user = self.db_service.select(UserDB, user_name=[form_data.username])
         if user is None:
             raise credentials_exception
         if not self.verify_password(form_data.password, user.password):
@@ -82,7 +82,7 @@ class AuthService:
             token_data = TokenData(username=username)
         except JWTError:
             raise credentials_exception
-        user = self.db_service.select(UserDB, user_name=username)
+        user = self.db_service.select(UserDB, user_name=[username])
         if user is None:
             raise credentials_exception
         return user

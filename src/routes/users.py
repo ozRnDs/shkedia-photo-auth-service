@@ -1,6 +1,6 @@
 import logging
 logger = logging.getLogger(__name__)
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, status
 
 from typing import Annotated
 from models.user import UserDB, User, UserRequest
@@ -41,7 +41,7 @@ class UserServiceHandler:
                              methods=["delete"],
                              dependencies=[Depends(self.auth_service.__get_user_from_token__)],
                              )
-        router.add_api_route(path="/{user_id}", 
+        router.add_api_route(path="", 
                              endpoint=self.update_user,
                              methods=["post"],
                              response_model=User,
@@ -59,7 +59,7 @@ class UserServiceHandler:
 
     def get_user(self, search_field: str = "user_name", search_value: str = None):
         try:
-            search_dictionary = {search_field: search_value}
+            search_dictionary = {search_field: [search_value]}
             get_user: UserDB = self.db_service.select(UserDB,**search_dictionary)
         except Exception as err:
             logger.error(err)
@@ -69,9 +69,9 @@ class UserServiceHandler:
         return get_user.toUser()
 
 
-    def delete_user(self, user_id: str, current_user: Annotated[UserDB, Depends(get_user)]):
+    def delete_user(self, user_id: str):
         try:
-            user = self.db_service.select(UserDB, user_id=user_id)
+            user = self.db_service.select(UserDB, user_id=[user_id])
             if user is None:
                 raise HTTPException(status_code=404, detail="Can't delete user")
             self.db_service.delete(user)
@@ -82,9 +82,14 @@ class UserServiceHandler:
                 raise err
             raise HTTPException(status_code=500, detail="Can't delete user")
     
-    def update_user(self, user_id: str, current_user: Annotated[UserDB, Depends(get_user)]) -> User:
+    def update_user(self, new_user: UserDB) -> User:
         try:
-            self.db_service.update(UserDB, user_id=user_id)
+            raise NotImplementedError("I'm not ready for that. In the near future. I promise")
+            current_user = self.get_user(search_field="user_id", search_value=new_user.user_id) #TODO: Think about the user update. The password field should be ignored
+            self.db_service.update(current_user,new_user)
+            return new_user.toUser()
         except Exception as err:
             logger.error(err)
+            if type(err)==AttributeError:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(err))
             raise HTTPException(status_code=500, detail="Can't Update User")
