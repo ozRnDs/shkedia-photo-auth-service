@@ -1,3 +1,9 @@
+## 0.2.1 (2023-12-02)
+
+### Fix
+
+- **models/user/sql_insert**: Fix type in sql statement
+
 ## 0.2.0 (2023-12-01)
 
 ### Feat
