@@ -80,8 +80,8 @@ UPDATE /rotate_key
     ```
 1. The env can be override by the following command:
     ```bash
-    export MEDIA_DB_ENV=.local/media_db_service_${ENVIRONMENT}.env
-    docker compose --env-file ${MEDIA_DB_ENV} up -d
+    export AUTH_SERVICE_ENV=.local/auth_service_${ENVIRONMENT}.env
+    docker compose --env-file ${AUTH_SERVICE_ENV} up -d
     ```
 
 # Development
