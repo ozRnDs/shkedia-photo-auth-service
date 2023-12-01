@@ -33,7 +33,7 @@ UPDATE /rotate_key
 1. Set the location of the credentials files on the host:
     ```bash
     export HOST_MOUNT=/secrets/auth_credentials
-    export AUTH_SERVICE_VERSION=0.0.1
+    export AUTH_SERVICE_VERSION=$(cz version -p)
     ```
 1. Create credentials token files as follows:
     ```bash
@@ -61,6 +61,7 @@ UPDATE /rotate_key
     export AUTH_DB_CREDENTIALS_LOCATION=$CREDENTIALS_FOLDER_NAME/postgres_credentials.json
     export JWT_KEY_LOCATION=$CREDENTIALS_FOLDER_NAME/jwt_token
     export TOKEN_TIME_PERIOD=15
+    export ENVIRONMENT=dev
 
     if [ ! -d .local ]; then
         sudo mkdir .local
@@ -70,6 +71,7 @@ UPDATE /rotate_key
     AUTH_DB_CREDENTIALS_LOCATION=$AUTH_DB_CREDENTIALS_LOCATION
     JWT_KEY_LOCATION=$JWT_KEY_LOCATION
     TOKEN_TIME_PERIOD=$TOKEN_TIME_PERIOD
+    ENVIRONMENT=$ENV
     EOT
     ```
 1. Run the service using compose command:
@@ -78,8 +80,8 @@ UPDATE /rotate_key
     ```
 1. The env can be override by the following command:
     ```bash
-    EXPORT AUTH_ENV=.local/auth_service.env
-    docker compose --env-file ${AUTH_ENV} up -d
+    export MEDIA_DB_ENV=.local/media_db_service_${ENVIRONMENT}.env
+    docker compose --env-file ${MEDIA_DB_ENV} up -d
     ```
 
 # Development
