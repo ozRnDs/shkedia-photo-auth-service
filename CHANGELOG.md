@@ -1,3 +1,9 @@
+## 0.2.0 (2023-12-01)
+
+### Feat
+
+- **src**: Add support of environment depended sql tables. Update the search infrastructure capabilities - able to search on multiple variable
+
 ## 0.1.1 (2023-11-29)
 
 ### Fix
