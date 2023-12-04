@@ -92,7 +92,7 @@ UPDATE /rotate_key
     ```bash
     export IMAGE_VERSION=$(cz version -p)
     export IMAGE_NAME=shkedia-photo-auth-service:${IMAGE_VERSION}
-    export IMAGE_FULL_NAME=public.ecr.aws/q2n5r5e8/ozrnds/${IMAGE_NAME}
+    export IMAGE_FULL_NAME=public.ecr.aws/q2n5r5e8/project-shkedia/${IMAGE_NAME}
     ```
 2. Build the image
     ```bash

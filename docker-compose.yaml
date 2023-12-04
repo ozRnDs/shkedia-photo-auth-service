@@ -1,6 +1,6 @@
 services:
   auth-api:
-    image: public.ecr.aws/q2n5r5e8/ozrnds/shkedia-photo-auth-service:${AUTH_SERVICE_VERSION}
+    image: public.ecr.aws/q2n5r5e8/project-shkedia/auth-service:${AUTH_SERVICE_VERSION}
     container_name: auth_api
     env_file: .local/auth_service_$ENVIRONMENT.env
     environment:
