@@ -1,3 +1,9 @@
+## 0.3.0 (2024-01-04)
+
+### Feat
+
+- **routes/users**: Add routes to get user's details based on token. Update token to carry user_id instead user_name
+
 ## 0.2.1 (2023-12-02)
 
 ### Fix

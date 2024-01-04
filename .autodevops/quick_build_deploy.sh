@@ -5,7 +5,7 @@ echo $ENVIRONMENT
 
 source .autodevops/service.properties
 
-# cz bump -ch
+cz bump -ch
 
 SERVICE_VERSION=$(cz version -p)
 IMAGE_NAME=shkedia-photo-${COMPONENT_NAME}-service:${SERVICE_VERSION}
