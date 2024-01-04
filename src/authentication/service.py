@@ -54,7 +54,7 @@ class AuthService:
             raise credentials_exception
         if not self.verify_password(form_data.password, user.password):
             raise credentials_exception
-        access_token = self.create_access_token(data={"sub": user.user_name})
+        access_token = self.create_access_token(data={"sub": user.user_id})
         return {"access_token": access_token, "token_type": "bearer"}
 
     def __get_jwt_key__(self):
@@ -68,7 +68,7 @@ class AuthService:
         return True
         pass
 
-    def __get_user_from_token__(self, token: Annotated[str, Depends(oauth2_scheme)]):
+    def __get_user_from_token__(self, request: Request, token: Annotated[str, Depends(oauth2_scheme)]):
         credentials_exception = HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
@@ -76,15 +76,15 @@ class AuthService:
         )
         try:
             payload = jwt.decode(token, self.__get_jwt_key__(), algorithms=[self.jwt_algorithm])
-            username: str = payload.get("sub")
-            if username is None:
+            user_id: str = payload.get("sub")
+            if user_id is None:
                 raise credentials_exception
-            token_data = TokenData(username=username)
         except JWTError:
             raise credentials_exception
-        user = self.db_service.select(UserDB, user_name=[username])
+        user = self.db_service.select(UserDB, user_id=[user_id])
         if user is None:
             raise credentials_exception
+        request.user_data = user
         return user
     
     def verify_password(self, plain_password, hashed_password):

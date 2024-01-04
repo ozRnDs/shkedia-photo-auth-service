@@ -1,6 +1,6 @@
 import logging
 logger = logging.getLogger(__name__)
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, Request
 
 from typing import Annotated
 from models.user import UserDB, User, UserRequest
@@ -36,6 +36,12 @@ class UserServiceHandler:
                              response_model=User,
                              dependencies=[Depends(self.auth_service.__get_user_from_token__)],
                             )
+        router.add_api_route(path="/current", 
+                             endpoint=self.get_current_user,
+                             methods=["get"],
+                             response_model=User,
+                             dependencies=[Depends(self.auth_service.__get_user_from_token__)],
+                            )
         router.add_api_route(path="/{user_id}", 
                              endpoint=self.delete_user,
                              methods=["delete"],
@@ -67,6 +73,9 @@ class UserServiceHandler:
         if get_user is None:
             raise HTTPException(status_code=404, detail="User was not found")
         return get_user.toUser()
+
+    def get_current_user(self, request: Request):
+        return request.user_data.toUser()
 
 
     def delete_user(self, user_id: str):
